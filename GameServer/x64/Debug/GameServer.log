@@ -1,0 +1,7 @@
+﻿  Source.cpp
+d:\repositorios\cpp_sfml_udp\gameserver\source.cpp(49): warning C4244: 'argumento': conversión de 'time_t' a 'unsigned int'; posible pérdida de datos
+d:\repositorios\cpp_sfml_udp\gameserver\source.cpp(64): warning C4244: '=': conversión de 'int' a 'float'; posible pérdida de datos
+d:\repositorios\cpp_sfml_udp\gameserver\source.cpp(65): warning C4244: '=': conversión de 'int' a 'float'; posible pérdida de datos
+d:\repositorios\cpp_sfml_udp\gameserver\source.cpp(204): warning C4101: 'num': variable local sin referencia
+  GameServer.vcxproj -> D:\Repositorios\cpp_sfml_UDP\x64\Debug\GameServer.exe
+  GameServer.vcxproj -> D:\Repositorios\cpp_sfml_UDP\x64\Debug\GameServer.pdb (Partial PDB)

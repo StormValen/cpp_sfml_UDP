@@ -1,0 +1,7 @@
+﻿  Source.cpp
+d:\repositorios\cpp_sfml_udp\gameclient\source.cpp(56): warning C4244: 'inicializando': conversión de 'int' a 'float'; posible pérdida de datos
+d:\repositorios\cpp_sfml_udp\gameclient\source.cpp(57): warning C4244: 'inicializando': conversión de 'int' a 'float'; posible pérdida de datos
+d:\repositorios\cpp_sfml_udp\gameclient\source.cpp(289): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+d:\repositorios\cpp_sfml_udp\gameclient\source.cpp(298): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+  GameClient.vcxproj -> D:\Repositorios\cpp_sfml_UDP\x64\Debug\GameClient.exe
+  GameClient.vcxproj -> D:\Repositorios\cpp_sfml_UDP\x64\Debug\GameClient.pdb (Partial PDB)
