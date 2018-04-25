@@ -9,6 +9,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML\Network.hpp>
 
+
 #define MAX 100
 #define SIZE_TABLERO 64
 #define SIZE_FILA_TABLERO 25
@@ -23,6 +24,8 @@
 
 enum TipoProceso { RATON, GATO, PADRE };
 char tablero[SIZE_TABLERO];
+
+/*
 struct Player
 {
 	int ID;
@@ -34,47 +37,53 @@ struct Movment
 	float movX, movY;
 	int IDMove;
 };
+*/
 /**
 * Si vale true --> nos permite marcar casilla con el mouse
 * Si vale false --> No podemos interactuar con el tablero y aparece un letrero de "esperando"
 */
-bool tienesTurno = true;
+
+//bool tienesTurno = true;
+
+
 
 /**
 * Ahora mismo no tiene efecto, pero luego lo necesitarás para validar los movimientos
 * en función de si eres el gato o el ratón.
 */
-TipoProceso quienSoy = TipoProceso::RATON;
+//TipoProceso quienSoy = TipoProceso::RATON;
 
 
 /**
 * Cuando el jugador clica en la pantalla, se nos da una coordenada del 0 al 500.
 * Esta función la transforma a una posición entre el 0 y el 24
 */
-sf::Vector2f TransformaCoordenadaACasilla(int _x, int _y)
+/*sf::Vector2f TransformaCoordenadaACasilla(int _x, int _y)
 {
 	float xCasilla = _x / LADO_CASILLA;
 	float yCasilla = _y / LADO_CASILLA;
 	sf::Vector2f casilla(xCasilla, yCasilla);
 	return casilla;
-}
+}*/
 
 /**
 * Si guardamos las posiciones de las piezas con valores del 0 al 7,
 * esta función las transforma a posición de ventana (pixel), que va del 0 al 512
 */
-sf::Vector2f BoardToWindows(sf::Vector2f _position)
+/*sf::Vector2f BoardToWindows(sf::Vector2f _position)
 {
 	return sf::Vector2f(_position.x*LADO_CASILLA, _position.y*LADO_CASILLA);
-}
+}*/
 
+/*
 sf::UdpSocket socket;
 Player player;
 std::map<int, Player>Players;
 int ID;
 Movment movActual;
 std::vector<Movment>listMovments;
-
+*/
+/*
 void old_resetMov(Movment* mov) {
 	mov->movX = 0;
 	mov->movY = 0;
@@ -118,9 +127,11 @@ void old_Connection(){
 	}
 	packR.clear();
 }
+*/
 /**
 * Contiene el código SFML que captura el evento del clic del mouse y el código que pinta por pantalla
 */
+/*
 void old_Gameplay()
 {
 	socket.setBlocking(false);
@@ -310,42 +321,42 @@ void old_Gameplay()
 		shapeRaton.setPosition(posicionRaton);
 		window.draw(shapeRaton);*/
 
-		for (std::map<int, Player>::iterator it = Players.begin(); it != Players.end(); ++it) {
-			sf::CircleShape shapeRaton(RADIO_AVATAR);
-			if (it->first == player.ID) {
-				shapeRaton.setFillColor(sf::Color::Blue);
-			}
-			else {
-				shapeRaton.setFillColor(sf::Color::Red);
-			}
-			sf::Vector2f positionGato1(it->second.posX, it->second.posY);
+		//for (std::map<int, Player>::iterator it = Players.begin(); it != Players.end(); ++it) {
+			//sf::CircleShape shapeRaton(RADIO_AVATAR);
+			//if (it->first == player.ID) {
+				//shapeRaton.setFillColor(sf::Color::Blue);
+			//}
+			//else {
+			//	shapeRaton.setFillColor(sf::Color::Red);
+			//}
+			//sf::Vector2f positionGato1(it->second.posX, it->second.posY);
 			//positionGato1 = BoardToWindows(positionGato1);
-			shapeRaton.setPosition(positionGato1);
+			//shapeRaton.setPosition(positionGato1);
 
-			window.draw(shapeRaton);
-		}
+			//window.draw(shapeRaton);
+		//}
 	
 	/*	//Pintamos los cuatro circulitos del gato
-		sf::CircleShape shapeGato(RADIO_AVATAR);
-		shapeGato.setFillColor(sf::Color::Red);
+		//sf::CircleShape shapeGato(RADIO_AVATAR);
+		//shapeGato.setFillColor(sf::Color::Red);
 
-		sf::Vector2f positionGato1(1.f, 0.f);
-		positionGato1 = BoardToWindows(positionGato1);
-		shapeGato.setPosition(positionGato1);
+		//sf::Vector2f positionGato1(1.f, 0.f);
+		//positionGato1 = BoardToWindows(positionGato1);
+		//shapeGato.setPosition(positionGato1);
 
-		window.draw(shapeGato);
+		//window.draw(shapeGato);
 
-		sf::Vector2f positionGato2(3.f, 0.f);
-		positionGato2 = BoardToWindows(positionGato2);
-		shapeGato.setPosition(positionGato2);
+		//sf::Vector2f positionGato2(3.f, 0.f);
+		//positionGato2 = BoardToWindows(positionGato2);
+		//shapeGato.setPosition(positionGato2);
 
-		window.draw(shapeGato);
+		//window.draw(shapeGato);
 
-		sf::Vector2f positionGato3(5.f, 0.f);
-		positionGato3 = BoardToWindows(positionGato3);
-		shapeGato.setPosition(positionGato3);
+		//sf::Vector2f positionGato3(5.f, 0.f);
+		//positionGato3 = BoardToWindows(positionGato3);
+		//shapeGato.setPosition(positionGato3);
 
-		window.draw(shapeGato);*/
+		//window.draw(shapeGato);
 		if (!tienesTurno)
 		{
 			//Si no tengo el turno, pinto un letrerito de "Esperando..."
@@ -380,27 +391,86 @@ void old_Gameplay()
 		window.display();
 	}
 }
+*/
 
 
+#define MAX_ENEMIES 3
 
+sf::UdpSocket socket;
 
+struct Player {
+	int id;
+	std::string name;
+	int xPos;
+	int yPos;
+};
+
+std::map<int, Player> aPlayers;
+
+std::string myName;
+int myId;
 
 void Connection() {
-	sf::Packet packetHELLOE;
+	// Hello.
+	sf::Packet Packet;
+	std::string cmd = "HELLO";
 
-	sf::Packet packetLog;
-	std::string name;
-	std::cout << "Introduce tu nombre" << std::endl;
-	std::cin >> name;
-	packetLog << name;
-	if (socket.send(packetLog, "localhost", 50000) != sf::Socket::Done) {
-		std::cout << "ERROR: An error has ocurred when sending a packet" << std::endl;
+	std::cout << "<INFO> Set your name: ";
+	std::cin >> myName;
+
+	Packet << cmd;
+	Packet << myName;
+
+	if (socket.send(Packet, "localhost", 50000) != sf::Socket::Done) {
+		std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
 	}
-	packetHELLOE.clear();
+	Packet.clear();
+
+	sf::IpAddress Ip;
+	unsigned short Port;
+	if (socket.receive(Packet, Ip, Port) != sf::Socket::Done) {
+		std::cout << "<ERROR> An error has ocurred when receiveing a packet" << std::endl;
+	}
+
+	// Welcome.
+	Packet >> cmd;
+	Packet >> myId;
+	if (cmd == "WELCOME") {
+		std::cout << "<INFO> Welcome to the game your id is [ " << myId << " ]" << std::endl;
+	}
+	Packet.clear();
+	//Recibir jugadores connectados antes a este.
+}
+
+void WaitToNewConnections() {
+	while (aPlayers.size() != MAX_ENEMIES) {
+
+		sf::Packet Packet;
+		sf::IpAddress Ip;
+		unsigned short Port;
+		std::string cmd;
+
+		if (socket.receive(Packet, Ip, Port) != sf::Socket::Done) {
+			std::cout << "<ERROR> An error has ocurred when receiveing a packet" << std::endl;
+		}
+
+		Packet >> cmd;
+		if (cmd == "NEW_PLAYER") {
+			Player newPlayer;
+			Packet >> newPlayer.id;
+			Packet >> newPlayer.name;
+			Packet >> newPlayer.xPos;
+			Packet >> newPlayer.yPos;
+			std::cout << "<INFO> New player connected | NAME: " << newPlayer.name << " ID: " << newPlayer.id << " POS: " << newPlayer.xPos << " - " << newPlayer.yPos << std::endl;
+			aPlayers.insert(std::pair<int, Player>(newPlayer.id, newPlayer));
+		}
+	}
 }
 
 int main()
 {
-	old_Connection();
+	Connection();
+	WaitToNewConnections();
+	system("pause");
 	return 0;
 }
