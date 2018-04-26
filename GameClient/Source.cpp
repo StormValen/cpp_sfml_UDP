@@ -439,10 +439,10 @@ void Connection() {
 		std::cout << "<INFO> Welcome to the game your id is [ " << myId << " ]" << std::endl;
 	}
 	Packet.clear();
-	//Recibir jugadores connectados antes a este.
 }
 
 void WaitToNewConnections() {
+	//Recibe los jugadores conectados antes y los que se conectan despues.
 	while (aPlayers.size() != MAX_ENEMIES) {
 
 		sf::Packet Packet;
