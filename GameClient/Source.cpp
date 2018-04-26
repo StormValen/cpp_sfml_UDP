@@ -1,4 +1,4 @@
-#include <stdlib.h>
+Ôªø#include <stdlib.h>
 // #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -7,23 +7,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <SFML/Graphics.hpp>
-#include <SFML\Network.hpp>
-
-
-#define MAX 100
-#define SIZE_TABLERO 64
-#define SIZE_FILA_TABLERO 25
-#define LADO_CASILLA 20
-#define RADIO_AVATAR 10.f
-#define OFFSET_AVATAR 1
-
-#define SIZE_TABLERO 64
-#define LADO_CASILLA 20
-#define RADIO_AVATAR 10.f
-#define OFFSET_AVATAR 1
-
-enum TipoProceso { RATON, GATO, PADRE };
-char tablero[SIZE_TABLERO];
+#include <SFML/Network.hpp>
 
 /*
 struct Player
@@ -48,15 +32,15 @@ struct Movment
 
 
 /**
-* Ahora mismo no tiene efecto, pero luego lo necesitar·s para validar los movimientos
-* en funciÛn de si eres el gato o el ratÛn.
+* Ahora mismo no tiene efecto, pero luego lo necesitar√°s para validar los movimientos
+* en funci√≥n de si eres el gato o el rat√≥n.
 */
 //TipoProceso quienSoy = TipoProceso::RATON;
 
 
 /**
 * Cuando el jugador clica en la pantalla, se nos da una coordenada del 0 al 500.
-* Esta funciÛn la transforma a una posiciÛn entre el 0 y el 24
+* Esta funci√≥n la transforma a una posici√≥n entre el 0 y el 24
 */
 /*sf::Vector2f TransformaCoordenadaACasilla(int _x, int _y)
 {
@@ -68,7 +52,7 @@ struct Movment
 
 /**
 * Si guardamos las posiciones de las piezas con valores del 0 al 7,
-* esta funciÛn las transforma a posiciÛn de ventana (pixel), que va del 0 al 512
+* esta funci√≥n las transforma a posici√≥n de ventana (pixel), que va del 0 al 512
 */
 /*sf::Vector2f BoardToWindows(sf::Vector2f _position)
 {
@@ -129,7 +113,7 @@ void old_Connection(){
 }
 */
 /**
-* Contiene el cÛdigo SFML que captura el evento del clic del mouse y el cÛdigo que pinta por pantalla
+* Contiene el c√≥digo SFML que captura el evento del clic del mouse y el c√≥digo que pinta por pantalla
 */
 /*
 void old_Gameplay()
@@ -245,7 +229,7 @@ void old_Gameplay()
 					{
 						casillaOrigen = TransformaCoordenadaACasilla(x, y);
 						casillaMarcada = true;
-						//TODO: Comprobar que la casilla marcada coincide con las posiciÛn del raton (si le toca al ratÛn)
+						//TODO: Comprobar que la casilla marcada coincide con las posici√≥n del raton (si le toca al rat√≥n)
 						//o con la posicion de alguna de las piezas del gato (si le toca al gato)
 
 					}
@@ -261,16 +245,16 @@ void old_Gameplay()
 						{
 							if (quienSoy == TipoProceso::RATON)
 							{
-								//TODO: Validar que el destino del ratÛn es correcto
+								//TODO: Validar que el destino del rat√≥n es correcto
 
-								//TODO: Si es correcto, modificar la posiciÛn del ratÛn y enviar las posiciones al padre
+								//TODO: Si es correcto, modificar la posici√≥n del rat√≥n y enviar las posiciones al padre
 
 							}
 							else if (quienSoy == TipoProceso::GATO)
 							{
 								//TODO: Validar que el destino del gato es correcto
 
-								//TODO: Si es correcto, modificar la posiciÛn de la pieza correspondiente del gato y enviar las posiciones al padre
+								//TODO: Si es correcto, modificar la posici√≥n de la pieza correspondiente del gato y enviar las posiciones al padre
 							}
 						}
 					}
@@ -284,7 +268,7 @@ void old_Gameplay()
 
 		window.clear();
 
-		//A partir de aquÌ es para pintar por pantalla
+		//A partir de aqu√≠ es para pintar por pantalla
 		//Este FOR es para el tablero
 		for (int i = 0; i<SIZE_FILA_TABLERO; i++)
 		{
@@ -313,7 +297,7 @@ void old_Gameplay()
 			}
 		}
 
-		//TODO: Para pintar el circulito del ratÛn
+		//TODO: Para pintar el circulito del rat√≥n
 		/*sf::CircleShape shapeRaton(RADIO_AVATAR);
 		shapeRaton.setFillColor(sf::Color::Blue);
 		sf::Vector2f posicionRaton(player.posX, player.posY);
@@ -396,7 +380,20 @@ void old_Gameplay()
 
 #define MAX_ENEMIES 3
 
-sf::UdpSocket socket;
+#define MAX 100
+#define SIZE_TABLERO 625
+#define SIZE_FILA_TABLERO 25
+#define LADO_CASILLA 20
+#define RADIO_AVATAR 10.f
+#define OFFSET_AVATAR 1
+
+#define SIZE_TABLERO 64
+#define LADO_CASILLA 20
+#define RADIO_AVATAR 10.f
+#define OFFSET_AVATAR 1
+
+enum TipoProceso { RATON, GATO, PADRE };
+char tablero[SIZE_TABLERO];
 
 struct Player {
 	int id;
@@ -405,10 +402,11 @@ struct Player {
 	int yPos;
 };
 
-std::map<int, Player> aPlayers;
+Player localPlayer;
 
-std::string myName;
-int myId;
+sf::UdpSocket socket;
+std::map<int, Player> aPlayers;
+bool game_end = false;
 
 void Connection() {
 	// Hello.
@@ -416,10 +414,10 @@ void Connection() {
 	std::string cmd = "HELLO";
 
 	std::cout << "<INFO> Set your name: ";
-	std::cin >> myName;
+	std::cin >> localPlayer.name;
 
 	Packet << cmd;
-	Packet << myName;
+	Packet << localPlayer.name;
 
 	if (socket.send(Packet, "localhost", 50000) != sf::Socket::Done) {
 		std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
@@ -434,9 +432,11 @@ void Connection() {
 
 	// Welcome.
 	Packet >> cmd;
-	Packet >> myId;
 	if (cmd == "WELCOME") {
-		std::cout << "<INFO> Welcome to the game your id is [ " << myId << " ]" << std::endl;
+		Packet >> localPlayer.id;
+		Packet >> localPlayer.xPos;
+		Packet >> localPlayer.yPos;
+		std::cout << "<INFO> Welcome to the game your id is [ " << localPlayer.id << " ]" << std::endl;
 	}
 	Packet.clear();
 }
@@ -467,10 +467,90 @@ void WaitToNewConnections() {
 	}
 }
 
+
+void GameLoop()
+{
+	std::string base = "Game Window - ";
+	std::string window_name = base + localPlayer.name;
+	std::cout << window_name << std::endl;
+	sf::RenderWindow window(sf::VideoMode(500, 500), "Game Window - " + localPlayer.name);
+	while (window.isOpen())
+	{
+		sf::Event event;
+
+		//Este primer WHILE es para controlar los eventos del mouse
+		while (window.pollEvent(event))
+		{
+			switch (event.type)
+			{
+			case sf::Event::Closed:
+				window.close();
+				break;
+			case sf::Event::MouseButtonPressed:
+				break;
+			default:
+				break;
+
+			}
+		}
+
+		window.clear();
+
+		//A partir de aqu√≠ es para pintar por pantalla
+		//Este FOR es para el tablero
+		for (int i = 0; i<SIZE_FILA_TABLERO; i++)
+		{
+			for (int j = 0; j<SIZE_FILA_TABLERO; j++)
+			{
+				sf::RectangleShape rectGris(sf::Vector2f(LADO_CASILLA, LADO_CASILLA));
+				rectGris.setFillColor(sf::Color(255,255,255,25));
+				if (i % 2 == 0)
+				{
+					//Empieza por el blanco
+					if (j % 2 == 0)
+					{
+						rectGris.setPosition(sf::Vector2f(i*LADO_CASILLA, j*LADO_CASILLA));
+						window.draw(rectGris);
+					}
+				}
+				else
+				{
+					//Empieza por el negro
+					if (j % 2 == 1)
+					{
+						rectGris.setPosition(sf::Vector2f(i*LADO_CASILLA, j*LADO_CASILLA));
+						window.draw(rectGris);
+					}
+				}
+			}
+		}
+
+		// Pintar posicion del jugador local
+		sf::CircleShape localPlayerCircle(RADIO_AVATAR);
+		localPlayerCircle.setFillColor(sf::Color::Cyan);
+		sf::Vector2f localPlayerPos(localPlayer.xPos, localPlayer.yPos);
+		localPlayerCircle.setPosition(localPlayerPos);
+		window.draw(localPlayerCircle);
+
+		// Pintar posicion de los jugadores remotos
+		for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
+			sf::CircleShape remotePlayerCircle(RADIO_AVATAR);
+			remotePlayerCircle.setFillColor(sf::Color::Blue);
+			sf::Vector2f remotePlayerPos(it->second.xPos, it->second.yPos);
+			remotePlayerCircle.setPosition(remotePlayerPos);
+
+			window.draw(remotePlayerCircle);
+		}
+
+		window.display();
+	}
+
+}
+
 int main()
 {
 	Connection();
 	WaitToNewConnections();
-	system("pause");
+	GameLoop();
 	return 0;
 }

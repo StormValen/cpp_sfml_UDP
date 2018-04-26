@@ -240,7 +240,7 @@ void Connection() {
 
 			// Paquete WELCOME.
 			cmd = "WELCOME";
-			Packet << cmd << newPlayer.id;
+			Packet << cmd << newPlayer.id << newPlayer.xPos << newPlayer.yPos;
 
 			// Send WELCOME.
 			if (socket.send(Packet, newPlayer.ip, newPlayer.port) != sf::Socket::Done) {
