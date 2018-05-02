@@ -199,9 +199,17 @@ struct Player {
 	std::string name;
 	int xPos;
 	int yPos;
+	bool isInfected;
+	sf::Clock currentInactiveTime;
 };
 
+int id_Packet = 0;
+int temp_id_Packet;
+
 std::map<int, Player> aPlayers;
+std::map<int, sf::Packet> aPackets_Sended;
+std::map<int, sf::Packet> aPackets_Received;
+
 
 void Connection() {
 	socket.bind(50000);
@@ -223,55 +231,87 @@ void Connection() {
 		// Creacion del nuevo jugador.
 		Player newPlayer;
 		Packet >> cmd;
-
+		Packet >> temp_id_Packet;
 		if (cmd == "HELLO") {
+			bool playerAlreadyExists = false;
+
 			Packet >> newPlayer.name;
 			newPlayer.id = newPlayer.port = Port;
 			newPlayer.ip = Ip;
 			newPlayer.xPos = rand() % 499;
 			newPlayer.yPos = rand() % 499;
+			newPlayer.isInfected = false;
 
-			// Añadir nuevo jugador al array.
-			aPlayers.insert(std::pair<int, Player>(newPlayer.id, newPlayer));
-
-			// Print del packet.
-			std::cout << "<PLAYER IP> " << Ip << " | " << "<PLAYER PORT & ID> " << Port << " | " << "PACKET: " << cmd << "_" << newPlayer.name << std::endl;
-			Packet.clear();
-
-			// Paquete WELCOME.
-			cmd = "WELCOME";
-			Packet << cmd << newPlayer.id << newPlayer.xPos << newPlayer.yPos;
-
-			// Send WELCOME.
-			if (socket.send(Packet, newPlayer.ip, newPlayer.port) != sf::Socket::Done) {
-				std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
-			}
-			Packet.clear();
-
-			// Enviar jugadores connectados anteriormente.
+			// Comprovar que el jugador no existe.
 			for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
-				cmd = "NEW_PLAYER";
-				Packet << cmd << it->second.id << it->second.name << it->second.xPos << it->second.yPos;
+				if (it->second.id == newPlayer.id || it->second.name == newPlayer.name) {
+					playerAlreadyExists = true;
+				}
+			}
 
-				if (newPlayer.id != it->second.id) {
+			if (!playerAlreadyExists) {
+				// Añadir nuevo jugador al array.
+				aPlayers.insert(std::pair<int, Player>(newPlayer.id, newPlayer));
+
+				// Print del packet.
+				std::cout << "<PLAYER IP> " << Ip << " | " << "<PLAYER PORT & ID> " << Port << " | " << "PACKET: " << temp_id_Packet << "_" << cmd << "_" << newPlayer.name << std::endl;
+				Packet.clear();
+
+				// Paquete WELCOME.
+				cmd = "WELCOME";
+				Packet << cmd << id_Packet << newPlayer.id << newPlayer.xPos << newPlayer.yPos;
+				id_Packet++;
+
+				// Send WELCOME.
+				if (socket.send(Packet, newPlayer.ip, newPlayer.port) != sf::Socket::Done) {
+					std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
+				}
+				Packet.clear();
+
+				// Enviar jugadores connectados anteriormente.
+				for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
+					cmd = "NEW_PLAYER";
+					Packet << cmd << id_Packet << it->second.id << it->second.name << it->second.xPos << it->second.yPos;
+					id_Packet++;
+					aPackets_Sended.insert(std::pair<int, sf::Packet>(id_Packet, Packet));
+
+					if (newPlayer.id != it->second.id) {
+						if (socket.send(Packet, newPlayer.ip, newPlayer.port) != sf::Socket::Done) {
+							std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
+						}
+					}
+					Packet.clear();
+				}
+
+				// Recorrer aPlayers y enviar nuevo jugador connectado.
+				for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
+					cmd = "NEW_PLAYER";
+					Packet << cmd << id_Packet << newPlayer.id << newPlayer.name << newPlayer.xPos << newPlayer.yPos;
+					id_Packet++;
+					aPackets_Sended.insert(std::pair<int, sf::Packet>(id_Packet, Packet));
+
+					if (newPlayer.id != it->second.id) {
+						if (socket.send(Packet, it->second.ip, it->second.port) != sf::Socket::Done) {
+							std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
+						}
+					}
+					Packet.clear();
+				}
+			}
+			else if (playerAlreadyExists) {
+				// Enviar que ese jugador ya existe.
+				Packet.clear();
+				std::cout << "<INFO> A player with this username already exists" << std::endl;
+				for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
+					cmd = "PLAYER_EXISTS";
+					Packet << cmd << id_Packet;
+					id_Packet++;
+
 					if (socket.send(Packet, newPlayer.ip, newPlayer.port) != sf::Socket::Done) {
 						std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
 					}
+					Packet.clear();
 				}
-				Packet.clear();
-			}
-
-			// Recorrer aPlayers y enviar nuevo jugador connectado.
-			for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
-				cmd = "NEW_PLAYER";
-				Packet << cmd << newPlayer.id << newPlayer.name << newPlayer.xPos << newPlayer.yPos;
-
-				if (newPlayer.id != it->second.id) {
-					if (socket.send(Packet, it->second.ip, it->second.port) != sf::Socket::Done) {
-						std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
-					}
-				}
-				Packet.clear();
 			}
 		}
 
@@ -282,12 +322,24 @@ void Connection() {
 	}
 }
 
+void Game() {
+	bool end = false;
+	while (!end) {
+		for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
+			if (it->second.currentInactiveTime.getElapsedTime().asMilliseconds() >= 50000) {
+				std::cout << "<INFO> Player with ID: " << it->second.id << " and NAME: " << it->second.name << " has been disconnected for innactvity" << std::endl;
+			}
+		}
+	}
+}
+
 
 int main()
 {
 	srand(time(NULL));
 	// 1. Establecimiento de connexión
 	Connection();
+	Game();
 	system("pause");
 	// 2. Game Loop
 	// 3. Gestion de desconnexiones
