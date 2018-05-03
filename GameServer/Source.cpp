@@ -325,9 +325,61 @@ void Connection() {
 void Game() {
 	bool end = false;
 	while (!end) {
+
+		// Variables para necesarias para el receive.
+		sf::IpAddress Ip;
+		unsigned short Port;
+		sf::Packet Packet;
+		std::string cmd;
+
+		Packet.clear();
+		// Receive indicaciones cliente.
+		if (socket.receive(Packet, Ip, Port) != sf::Socket::Done) {
+			std::cout << "<ERROR> An error has ocurred when receiveing a packet" << std::endl;
+		}
+
+		Packet >> cmd;
+		if (cmd == "MOVEMENT") {
+			std::string temp_name;
+			int temp_xPos, temp_yPos;
+
+			Packet >> temp_id_Packet;
+			Packet >> temp_name;
+			Packet >> temp_xPos;
+			Packet >> temp_yPos;
+
+			std::cout << "<INFO> Player: " << temp_name << " is moving to X: " << temp_xPos << " Y: " << temp_yPos << std::endl;
+			Player temp_Player = aPlayers.find((int)Port)->second;
+			temp_Player.xPos = temp_xPos;
+			temp_Player.yPos = temp_yPos;
+			temp_Player.currentInactiveTime.restart();
+
+			Packet.clear();
+			
+			sf::Packet newPacket;
+			cmd = "MOVEMENT_FROM_PLAYER";
+			newPacket << cmd;
+			newPacket << id_Packet;
+			newPacket << temp_Player.id;
+			newPacket << temp_xPos;
+			newPacket << temp_yPos;
+
+			id_Packet++;
+
+			for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
+				if (temp_Player.id != it->second.id) {
+					if (socket.send(newPacket, it->second.ip, it->second.port) != sf::Socket::Done) {
+						std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
+					}
+				}
+			}
+			newPacket.clear();
+
+		}
+
 		for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
 			if (it->second.currentInactiveTime.getElapsedTime().asMilliseconds() >= 50000) {
-				std::cout << "<INFO> Player with ID: " << it->second.id << " and NAME: " << it->second.name << " has been disconnected for innactvity" << std::endl;
+				std::cout << "<INFO> Player with ID: " << it->second.id << " and NAME: " << it->second.name << " has been disconnected for innactivity" << std::endl;
 			}
 		}
 	}

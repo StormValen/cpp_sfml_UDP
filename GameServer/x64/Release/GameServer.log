@@ -1,9 +1,9 @@
 ﻿  Source.cpp
-Source.cpp(339): warning C4244: 'argumento': conversión de 'time_t' a 'unsigned int'; posible pérdida de datos
-  Generando código
-  3 of 308 functions ( 1.0%) were compiled, the rest were copied from previous compilation.
+Source.cpp(391): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+  Generating code
+  1 of 314 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    9 functions had inline decision re-evaluated but remain unchanged
-  Generación de código finalizada
-  GameServer.vcxproj -> D:\Repositorios\cpp_sfml_UDP\x64\Release\GameServer.exe
-  GameServer.vcxproj -> D:\Repositorios\cpp_sfml_UDP\x64\Release\GameServer.pdb (Full PDB)
+    1 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  GameServer.vcxproj -> C:\Users\vgutierrez\Documents\GitHub\cpp_sfml_UDP\x64\Release\GameServer.exe
+  GameServer.vcxproj -> C:\Users\vgutierrez\Documents\GitHub\cpp_sfml_UDP\x64\Release\GameServer.pdb (Full PDB)

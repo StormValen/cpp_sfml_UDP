@@ -535,6 +535,8 @@ void GameLoop()
 	std::string window_name = base + localPlayer.name;
 	sf::RenderWindow window(sf::VideoMode(500, 500), "Game Window - " + localPlayer.name);
 
+	// socket.setBlocking(false);
+
 	while (window.isOpen())
 	{
 		if (!CheckPlayersAlive()) {
@@ -560,21 +562,85 @@ void GameLoop()
 				}
 				else if (event.key.code == sf::Keyboard::Up) {
 					localPlayer.yPos -= 2;
+
+					sf::Packet Packet;
+					std::string cmd = "MOVEMENT";
+
+					Packet << cmd;
+					Packet << id_Packet;
+					Packet << localPlayer.name;
+					Packet << localPlayer.xPos;
+					Packet << localPlayer.yPos;
+
+
+					if (socket.send(Packet, "localhost", 50000) != sf::Socket::Done) {
+						std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
+					}
+					id_Packet++;
+
 				}
 				else if (event.key.code == sf::Keyboard::Down) {
 					localPlayer.yPos += 2;
+
+					sf::Packet Packet;
+					std::string cmd = "MOVEMENT";
+
+					Packet << cmd;
+					Packet << id_Packet;
+					Packet << localPlayer.name;
+					Packet << localPlayer.xPos;
+					Packet << localPlayer.yPos;
+
+
+					if (socket.send(Packet, "localhost", 50000) != sf::Socket::Done) {
+						std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
+					}
+					id_Packet++;
 				}
 				else if (event.key.code == sf::Keyboard::Right) {
 					localPlayer.xPos += 2;
+
+					sf::Packet Packet;
+					std::string cmd = "MOVEMENT";
+
+					Packet << cmd;
+					Packet << id_Packet;
+					Packet << localPlayer.name;
+					Packet << localPlayer.xPos;
+					Packet << localPlayer.yPos;
+
+
+					if (socket.send(Packet, "localhost", 50000) != sf::Socket::Done) {
+						std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
+					}
+					id_Packet++;
 				}
 				else if (event.key.code == sf::Keyboard::Left) {
 					localPlayer.xPos -= 2;
+
+					sf::Packet Packet;
+					std::string cmd = "MOVEMENT";
+
+					Packet << cmd;
+					Packet << id_Packet;
+					Packet << localPlayer.name;
+					Packet << localPlayer.xPos;
+					Packet << localPlayer.yPos;
+
+
+					if (socket.send(Packet, "localhost", 50000) != sf::Socket::Done) {
+						std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
+					}
+					id_Packet++;
 				}
 			default:
 				break;
 
 			}
 		}
+
+
+		
 
 		window.clear();
 
@@ -638,10 +704,48 @@ void GameLoop()
 	}
 }
 
+void ReceiveFromServerInGameLoop() {
+	bool end = false;
+	while (!end) {
+		sf::Packet Packet;
+		sf::IpAddress Ip;
+		unsigned short Port;
+		std::string cmd;
+
+		Packet.clear();
+		if (socket.receive(Packet, Ip, Port) != sf::Socket::Done) {
+			std::cout << "<ERROR> An error has ocurred when receiveing a packet" << std::endl;
+		}
+
+		int temp_xPos;
+		int temp_yPos;
+		int temp_id;
+
+		Packet >> cmd;
+		Packet >> temp_id_Packet;
+
+
+		if (cmd == "MOVEMENT_FROM_PLAYER") {
+			Packet >> temp_id;
+			Packet >> temp_xPos;
+			Packet >> temp_yPos;
+
+			for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
+				if (it->second.id == temp_id) {
+					it->second.xPos = temp_xPos;
+					it->second.yPos = temp_yPos;
+				}
+			}
+		}
+		Packet.clear();
+	}
+}
+
 int main()
 {
 	Connection();
 	WaitToNewConnections();
+	std::thread tr(ReceiveFromServerInGameLoop);
 	GameLoop();
 	std::cout << "<INFO> The Game is Over, Goodbye" << std::endl;
 	system("pause");
