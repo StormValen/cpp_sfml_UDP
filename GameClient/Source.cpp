@@ -558,6 +558,18 @@ void GameLoop()
 				if (event.key.code == sf::Keyboard::K) {
 					KillPlayers();
 				}
+				else if (event.key.code == sf::Keyboard::Up) {
+					localPlayer.yPos -= 2;
+				}
+				else if (event.key.code == sf::Keyboard::Down) {
+					localPlayer.yPos += 2;
+				}
+				else if (event.key.code == sf::Keyboard::Right) {
+					localPlayer.xPos += 2;
+				}
+				else if (event.key.code == sf::Keyboard::Left) {
+					localPlayer.xPos -= 2;
+				}
 			default:
 				break;
 
