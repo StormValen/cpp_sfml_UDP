@@ -351,7 +351,6 @@ void ReceiveFromServerInGameLoop() {
 
 		Packet >> cmd;
 		Packet >> temp_id_Packet;
-		std::cout << cmd << std::endl;
 
 		if (cmd == "SET_INFECTED") {
 			int temp_id_Player;
@@ -361,13 +360,11 @@ void ReceiveFromServerInGameLoop() {
 			for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
 				if (it->second.id == temp_id_Player) {
 					it->second.isInfected = true;
-					std::cout << "<GAMEPLAY> You're not infected, escape from the other players " << std::endl;
 				}
 			}
 
 			if (temp_id_Player == localPlayer.id) {
 				localPlayer.isInfected = true;
-				std::cout << "<GAMEPLAY> You're infected, hunt the other players " << std::endl;
 			}
 			Packet.clear();
 		}

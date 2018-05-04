@@ -275,7 +275,7 @@ void Game() {
 
 
 			// Colisiones con las paredes.
-			if ((aPlayers.find(temp_id_Player)->second.xPos += temp_acumMovX) <= 0 ) {
+			/*if ((aPlayers.find(temp_id_Player)->second.xPos += temp_acumMovX) <= 0 ) {
 				greenLight = false;
 			}
 
@@ -290,7 +290,7 @@ void Game() {
 			if ((aPlayers.find(temp_id_Player)->second.yPos += temp_acumMovY) >= 512) {
 				greenLight = false;
 			}
-
+			*/
 
 			for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
 				if (temp_id_Player == it->second.id) {
