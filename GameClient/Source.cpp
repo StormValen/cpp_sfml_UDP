@@ -6,6 +6,7 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include <SFML/Network.hpp>
+#include <random>
 
 
 #define MAX_ENEMIES 3
@@ -41,6 +42,13 @@ struct Player {
 	std::vector<Movement> aMovements;
 };
 
+static float GetRandomFloat() {
+	static std::random_device rd;
+	static std::mt19937 gen(rd());
+	//static std::uniform_real_distribution<float>dis(since, to);
+	static std::uniform_real_distribution<float>dis(0.f, 1.f);
+	return dis(gen);
+}
 
 Movement localPlayerMovement;
 
@@ -74,9 +82,13 @@ void Connection() {
 	id_Packet++;
 
 	while (!end) {
+		socket.setBlocking(false);
 		if (socket.send(Packet, "localhost", 50000) != sf::Socket::Done && clock.getElapsedTime().asMilliseconds() >= 500) {
 			std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
 			clock.restart();
+		}
+		else {
+			std::cout << "sended" << std::endl;
 		}
 		//Packet.clear();
 
@@ -109,6 +121,7 @@ void Connection() {
 }
 
 void WaitToNewConnections() {
+	socket.setBlocking(true);
 	//Recibe los jugadores conectados antes y los que se conectan despues.
 	while (aPlayers.size() != MAX_ENEMIES) {
 
@@ -338,11 +351,11 @@ void ReceiveFromServerInGameLoop() {
 
 		Packet >> cmd;
 		Packet >> temp_id_Packet;
+		std::cout << cmd << std::endl;
 
 		if (cmd == "SET_INFECTED") {
 			int temp_id_Player;
 			Packet >> temp_id_Player;
-
 
 
 			for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
