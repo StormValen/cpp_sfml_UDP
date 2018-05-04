@@ -201,6 +201,7 @@ struct Player {
 	int yPos;
 	bool isInfected;
 	sf::Clock currentInactiveTime;
+	bool isDisconnected;
 };
 
 int id_Packet = 0;
@@ -241,6 +242,7 @@ void Connection() {
 			newPlayer.xPos = rand() % 499;
 			newPlayer.yPos = rand() % 499;
 			newPlayer.isInfected = false;
+			newPlayer.isDisconnected = false;
 
 			// Comprovar que el jugador no existe.
 			for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
@@ -319,6 +321,34 @@ void Connection() {
 			allPlayersConnected = true;
 			std::cout << "<INFO> All players are connected" << std::endl;
 		}
+
+
+		// Calcular quien esta infectado al inicio de forma aleatoria y avisar a los todos los jugadores.
+		srand(NULL);
+
+		int randInfected = rand() % 4;
+		
+		int counter = 0;
+		for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
+			if (counter == randInfected) {
+				it->second.isInfected = true;
+				std::cout << "<INFECTED> Name: " << it->second.name;
+				
+				for (std::map<int, Player>::iterator it_2 = aPlayers.begin(); it_2 != aPlayers.end(); ++it_2) {
+					Packet.clear();
+					cmd = "SET_INFECTED";
+					Packet << cmd << id_Packet << it->second.id;
+					id_Packet++;
+
+					if (socket.send(Packet, it_2->second.ip, it_2->second.port) != sf::Socket::Done) {
+						std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
+					}
+					Packet.clear();
+				}
+			}
+			counter++;
+		}
+
 	}
 }
 
@@ -332,7 +362,8 @@ void Game() {
 		sf::Packet Packet;
 		std::string cmd;
 
-		Packet.clear();
+		Packet.clear(); // Esto no hace falta.
+
 		// Receive indicaciones cliente.
 		if (socket.receive(Packet, Ip, Port) != sf::Socket::Done) {
 			std::cout << "<ERROR> An error has ocurred when receiveing a packet" << std::endl;
@@ -340,22 +371,26 @@ void Game() {
 
 		Packet >> cmd;
 		if (cmd == "MOVEMENT") {
+			// Variables necesarias para actualizar valores.
 			std::string temp_name;
 			int temp_xPos, temp_yPos;
 
+			// Extraccion del paquete.
 			Packet >> temp_id_Packet;
 			Packet >> temp_name;
 			Packet >> temp_xPos;
 			Packet >> temp_yPos;
 
-			std::cout << "<INFO> Player: " << temp_name << " is moving to X: " << temp_xPos << " Y: " << temp_yPos << std::endl;
+			// Asignacion de los nuevos valores al jugador.
 			Player temp_Player = aPlayers.find((int)Port)->second;
 			temp_Player.xPos = temp_xPos;
 			temp_Player.yPos = temp_yPos;
-			temp_Player.currentInactiveTime.restart();
+			//temp_Player.currentInactiveTime.restart();
+			aPlayers.find((int)Port)->second.currentInactiveTime.restart();
 
 			Packet.clear();
 			
+			// Generar nuevo paquete para informar a los demas jugadores del movimiento.
 			sf::Packet newPacket;
 			cmd = "MOVEMENT_FROM_PLAYER";
 			newPacket << cmd;
@@ -363,9 +398,9 @@ void Game() {
 			newPacket << temp_Player.id;
 			newPacket << temp_xPos;
 			newPacket << temp_yPos;
-
 			id_Packet++;
 
+			// Send de la nueva posicion del jugador.
 			for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
 				if (temp_Player.id != it->second.id) {
 					if (socket.send(newPacket, it->second.ip, it->second.port) != sf::Socket::Done) {
@@ -377,9 +412,134 @@ void Game() {
 
 		}
 
+
+		if (cmd == "ACUM_MOVEMENT") {
+			int temp_id_Player;
+			int temp_id_Move;
+			int temp_acumMovX;
+			int temp_acumMovY;
+
+			Packet >> temp_id_Packet;
+			Packet >> temp_id_Player;
+			Packet >> temp_id_Move;
+			Packet >> temp_acumMovX;
+			Packet >> temp_acumMovY;
+			Packet.clear();
+
+			aPlayers.find(temp_id_Player)->second.currentInactiveTime.restart();
+
+			// Validar el movimiento con el mapa.
+			bool greenLight = true;
+
+
+			// Colisiones con las paredes.
+			/*if ((aPlayers.find(temp_id_Player)->second.xPos += temp_acumMovX) <= 0 ) {
+				greenLight = false;
+			}
+
+			if ((aPlayers.find(temp_id_Player)->second.xPos += temp_acumMovX) >= 512) {
+				greenLight = false;
+			}
+
+			if ((aPlayers.find(temp_id_Player)->second.yPos += temp_acumMovY) <= 0) {
+				greenLight = false;
+			}
+
+			if ((aPlayers.find(temp_id_Player)->second.yPos += temp_acumMovY) >= 512) {
+				greenLight = false;
+			}*/
+
+			//Colisiones entre jugadores.
+			
+			// Recorre array de jugadores y comprueba si esta infectado.
+			for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
+				if (it->second.isInfected) {
+					// Si esta infectado recorre el array de jugadores para comprobar distancias.
+					for (std::map<int, Player>::iterator it_2 = aPlayers.begin(); it_2 != aPlayers.end(); ++it_2) {
+						int distanceBetween;
+
+						int diferenceX = (it_2->second.xPos - it->second.xPos);
+						int diferenceY = (it_2->second.yPos - it->second.yPos);
+
+						diferenceX *= diferenceX;
+						diferenceY *= diferenceY;
+
+						distanceBetween = std::sqrt(diferenceX - diferenceY);
+
+						std::cout << distanceBetween << std::endl;
+
+						if (distanceBetween < 5) {
+							std::cout << " Coliding " << std::endl;
+						}
+					}
+				}
+			}
+
+			if (greenLight) {
+				std::string new_cmd = "ACK_ACUM_MOV";
+				Packet << new_cmd;
+				Packet << temp_id_Packet;
+				Packet << temp_id_Move;
+			
+				// ACK de la acumulacion del movimento
+				if (socket.send(Packet, aPlayers.find(temp_id_Player)->second.ip, aPlayers.find(temp_id_Player)->second.port) != sf::Socket::Done) {
+					std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
+				}
+				Packet.clear();
+
+				// Generar nuevo paquete para informar a los demas jugadores del movimiento.
+				sf::Packet newPacket;
+				cmd = "MOVEMENT_FROM_PLAYER";
+				newPacket << cmd;
+				newPacket << id_Packet;
+				newPacket << temp_id_Player;
+				newPacket << temp_acumMovX;
+				newPacket << temp_acumMovY;
+				id_Packet++;
+
+				// Send de la nueva posicion del jugador.
+				for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
+					if (temp_id_Player != it->second.id) {
+						if (socket.send(newPacket, it->second.ip, it->second.port) != sf::Socket::Done) {
+							std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
+						}
+					}
+				}
+				newPacket.clear();
+			}
+		}
+
+
+		// Gestion de la desconexion.
 		for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end(); ++it) {
 			if (it->second.currentInactiveTime.getElapsedTime().asMilliseconds() >= 50000) {
-				std::cout << "<INFO> Player with ID: " << it->second.id << " and NAME: " << it->second.name << " has been disconnected for innactivity" << std::endl;
+				
+				it->second.isDisconnected = true;
+
+				// Informar a los demas jugadores de la desconexion.
+				for (std::map<int, Player>::iterator it_2 = aPlayers.begin(); it_2 != aPlayers.end(); ++it_2) {
+					cmd = "PLAYER_DISCONNECTED";
+					Packet << cmd << id_Packet << it->second.id;
+					id_Packet++;
+
+					if (socket.send(Packet, it_2->second.ip, it_2->second.port) != sf::Socket::Done) {
+						std::cout << "<ERROR> An error has ocurred when sending a packet" << std::endl;
+					}
+					
+
+					Packet.clear();
+				}
+			}
+		}
+
+		// Comprobar usuarios desconectados para eliminarlos.
+		for (std::map<int, Player>::iterator it = aPlayers.begin(); it != aPlayers.end();) {
+			if (it->second.isDisconnected == true) {
+				std::cout << "<INFO> Client disconnected: " << it->second.name << std::endl;
+				it = aPlayers.erase(it);
+			}
+			else {
+				++it;
 			}
 		}
 	}
@@ -391,9 +551,8 @@ int main()
 	srand(time(NULL));
 	// 1. Establecimiento de connexión
 	Connection();
+	// 2. Game Loop
 	Game();
 	system("pause");
-	// 2. Game Loop
-	// 3. Gestion de desconnexiones
 	return 0;
 }
